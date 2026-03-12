@@ -1,8 +1,11 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include <cctype> 
 
 using namespace std;
+
+char userResponses[10]; 
 
 void clearInput() {
     cin.clear();
@@ -14,7 +17,7 @@ void startExam(string &studentName, int &userScore, int totalQuestions, string q
     char userAnswer;
 
     cout << "\nEnter Student Name: ";
-    cin.ignore(); 
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
     getline(cin, studentName);
 
     cout << "\n--- Welcome " << studentName << "! Exam Started ---" << endl;
@@ -23,31 +26,37 @@ void startExam(string &studentName, int &userScore, int totalQuestions, string q
         bool valid = false;
         while (!valid) { 
             cout << "\n" << questions[i] << endl;
-            cout << "Your Answer: ";
+            cout << "Your Answer (A/B/C/D): ";
             cin >> userAnswer;
-            userAnswer = toupper(userAnswer); // case insensitive check
+            userAnswer = toupper(userAnswer);
 
-            // Check if input is A, B, C, or D
-            if (userAnswer == 'A' || userAnswer == 'B' || userAnswer == 'C' || userAnswer == 'D') {
+            if (userAnswer >= 'A' && userAnswer <= 'D') {
                 valid = true;
+                userResponses[i] = userAnswer; 
                 if (userAnswer == answers[i]) {
                     userScore++;
                 }
             } else {
-                cout << "[!] INVALID OPTION: Please enter only A, B, C, or D." << endl;
-                clearInput(); // Clear invalid input
+                cout << "[!] INVALID OPTION: Please enter A, B, C, or D." << endl;
+                clearInput();
             }
         }
     }
-    cout << "\nExam Completed! Go to 'View Result'." << endl;
+
+    // Immediate Professional Result Output
+    float per = ((float)userScore / totalQuestions) * 100;
+    cout << "\n--- OFFICIAL RESULT SHEET ---" << endl;
+    cout << "Student Name : " << studentName << endl;
+    cout << "Score        : " << userScore << " / " << totalQuestions << endl;
+    cout << "Percentage   : " << per << "%" << endl;
+    cout << "Status       : " << (per >= 35.0 ? "PASS" : "FAIL") << endl;
+    cout << "-------------------------------" << endl;
 }
 
 int main() {
-    int choice;
-    int score = 0;
+    int choice, score = 0;
     string studentName = "Guest";
     const int totalQuestions = 10;
-    float passingPercentage = 35.0;
 
     string questions[10] = {
         "1. Who invented C++?\nA. Dennis Ritchie\nB. Ken Thompson\nC. Bjarne Stroustrup\nD. Brian Kernighan",
@@ -68,12 +77,12 @@ int main() {
         cout << "   ITM SKILLS UNIVERSITY" << endl;
         cout << " ONLINE EXAMINATION SYSTEM (C++)" << endl;
         cout << "===============================" << endl;
-        cout << "1. Start Exam\n2. View Result\n3. Exit" << endl;
+        cout << "1. Start Exam\n2. View Result (Detailed)\n3. Exit" << endl;
         cout << "-------------------------------" << endl;
         cout << "Enter choice: ";
 
         if (!(cin >> choice)) {
-            cout << "\n[!] ERROR: Use numbers 1, 2, or 3 only." << endl;
+            cout << "\n[!] Error: Use numbers only." << endl;
             clearInput();
             continue;
         }
@@ -83,16 +92,29 @@ int main() {
                 startExam(studentName, score, totalQuestions, questions, answers);
                 break;
             case 2: {
-                float per = ((float)score / totalQuestions) * 100;
-                cout << "\n--- OFFICIAL RESULT SHEET ---" << endl;
-                cout << "Student Name : " << studentName << endl;
-                cout << "Total Score  : " << score << " / " << totalQuestions << endl;
-                cout << "Percentage   : " << per << "%" << endl;
-                if (per >= passingPercentage) cout << "Status       : PASS" << endl;
-                else cout << "Status       : FAIL" << endl;
+                if (studentName == "Guest") {
+                    cout << "\n[!] No data found. Please start the exam first." << endl;
+                } else {
+                    float per = ((float)score / totalQuestions) * 100;
+                    cout << "\n--- OFFICIAL RESULT SHEET ---" << endl;
+                    cout << "Student Name : " << studentName << endl;
+                    cout << "Score        : " << score << " / " << totalQuestions << endl;
+                    cout << "Percentage   : " << per << "%" << endl;
+                    cout << "Status       : " << (per >= 35.0 ? "PASS" : "FAIL") << endl;
+                    cout << "\n--- DETAILED BREAKDOWN ---" << endl;
+                    
+                    for(int i=0; i<totalQuestions; i++) {
+                        cout << "Q" << i+1 << ": ";
+                        if(userResponses[i] == answers[i]) {
+                            cout << "[CORRECT] (" << answers[i] << ")" << endl;
+                        } else {
+                            cout << "[WRONG] Yours: " << userResponses[i] << " | Correct: " << answers[i] << endl;
+                        }
+                    }
+                }
                 break;
             }
-            case 3: cout << "Exiting..." << endl; break;
+            case 3: cout << "Exiting system..." << endl; break;
             default: cout << "Invalid Option!" << endl;
         }
     } while (choice != 3);
